@@ -1,0 +1,67 @@
+/*
+11.
+For every match involving 'POL', show the matchid, date and the number of goals scored */
+
+SELECT matchid,mdate, count(player)
+  FROM game JOIN goal ON matchid = id 
+ WHERE (team1 = 'POL' OR team2 = 'POL') group by matchid,mdate
+
+
+/*
+13.
+List every match with the goals scored by each team as shown. This will use "CASE WHEN" which has not been explained in any previous exercises.
+mdate	team1	score1	team2	score2
+1 July 2012	ESP	4	ITA	0
+10 June 2012	ESP	1	ITA	1
+10 June 2012	IRL	1	CRO	3
+...
+Notice in the query given every goal is listed. If it was a team1 goal then a 1 appears in score1, otherwise there is a 0. You could SUM this column to get a count of the goals scored by team1. Sort your result by mdate, matchid, team1 and team2.
+
+*/
+
+SELECT mdate,
+  team1,
+  sum(CASE WHEN teamid=team1 THEN 1 ELSE 0 END) as score1, team2, 
+  sum(case when teamid=team2 then 1 else 0 end) as score2
+  FROM game left JOIN goal ON matchid = id group by mdate,team1,team2 order by mdate,matchid,team1,team2
+
+
+------------------------------
+-----More join operations-----
+------------------------------
+/*13.
+List the film title and the leading actor for all of the films 'Julie Andrews' played in.
+
+Did you get "Little Miss Marker twice"?
+Julie Andrews starred in the 1980 remake of Little Miss Marker and not the original(1934).
+
+Title is not a unique field, create a table of IDs in your subquery*/
+
+select title, name from movie m
+join casting c on m.id=c.movieid
+join actor a on a.id=c.actorid
+where movieid in
+(
+SELECT movieid FROM casting
+WHERE actorid IN (
+  SELECT id FROM actor
+  WHERE name='Julie Andrews')) and ord=1
+
+
+/*
+14.
+Obtain a list, in alphabetical order, of actors who've had at least 30 starring roles.*/
+
+  select  m.name from casting x join movie y on x.movieid=y.id join actor m on x.actorid=m.id where ord=1 group by m.name having count(movieid)>=30 order by m.name
+
+  /*
+  15.
+List the films released in the year 1978 ordered by the number of actors in the cast, then by title.*/
+
+select title,count(actorid) from movie m join casting c on m.id=c.movieid join actor a on c.actorid=a.id where yr=1978 
+group by title order by count(actorid) desc,title
+
+/*16.
+List all the people who have worked with 'Art Garfunkel'.*/
+
+  select name from actor join casting on id=actorid where movieid in(select  id from movie join casting on movie.id=casting.movieid where actorid=(select id from actor where name like "Art GArfunkel")) and name!="Art Garfunkel"
